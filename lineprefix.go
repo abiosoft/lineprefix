@@ -2,6 +2,7 @@ package lineprefix
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -75,12 +76,14 @@ var _ io.Closer = (*lineWriter)(nil)
 type prefix func() string
 type prefixes []prefix
 
-func (p prefixes) String() string {
-	var str string
+func (p prefixes) Bytes() []byte {
+	var b bytes.Buffer
 	for _, prefix := range p {
-		str += prefix()
+		fmt.Fprint(&b, prefix())
 	}
-	return str
+	// add a traling space char
+	fmt.Fprint(&b, " ")
+	return b.Bytes()
 }
 
 // lineWriter is a simple writer that only writes to an underlying writer when
@@ -108,6 +111,8 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 
 	if !l.open {
 		l.open = true
+
+		// enable color for the first line
 		if l.color != nil {
 			l.color.SetWriter(&l.buf)
 		}
@@ -153,9 +158,22 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 
 		// write to underlying writer if newline is encountered
 		if eol {
-			l.out.Write([]byte(l.prefixes.String() + " "))
-			l.buf.WriteTo(l.out)
+			// write prefixes
+			_, err := l.out.Write(l.prefixes.Bytes())
+			if err != nil {
+				return 0, err
+			}
+
+			// write line
+			n, err := l.buf.WriteTo(l.out)
+			if err != nil {
+				return int(n), err
+			}
+
+			// truncate the buffer
 			l.buf.Truncate(0)
+
+			// enable color for the next line
 			if l.color != nil {
 				l.color.SetWriter(&l.buf)
 			}
