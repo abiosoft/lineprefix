@@ -47,10 +47,10 @@ func PrefixFunc(f func() string) Option {
 	})
 }
 
-// Color sets the colour for the line outputs excluding the prefix.
+// Color sets the colour for the line outputs, excluding the prefix.
 func Color(c *color.Color) Option {
 	return optionFunc(func(l *lineWriter) {
-		l.color = c
+		l.color = &colorWrapper{Color: c}
 	})
 }
 
@@ -92,7 +92,7 @@ func (p prefixes) Bytes() []byte {
 type lineWriter struct {
 	out      io.Writer
 	prefixes prefixes
-	color    *color.Color
+	color    *colorWrapper
 
 	renderEscaped bool
 
@@ -150,7 +150,7 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 		eol := b[i] == '\n' // end of line
 
 		if eol && l.color != nil {
-			// reset color
+			// reset color at end of line
 			l.color.UnsetWriter(&l.buf)
 		}
 
