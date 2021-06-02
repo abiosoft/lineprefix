@@ -1,6 +1,7 @@
 # lineprefix
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/abiosoft/lineprefix.svg)](https://pkg.go.dev/github.com/abiosoft/lineprefix)
+[![Go](https://github.com/abiosoft/lineprefix/actions/workflows/go.yml/badge.svg)](https://github.com/abiosoft/lineprefix/actions/workflows/go.yml)
 
 `io.Writer` wrapper with line prefix and color customizations.
 
