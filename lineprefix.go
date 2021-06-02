@@ -10,11 +10,11 @@ import (
 	"github.com/fatih/color"
 )
 
-// New creates a new line prefix writer with options.
-func New(opts ...Option) io.WriteCloser {
+// New creates a new lineprefix writer with options.
+func New(options ...Option) io.WriteCloser {
 	var l lineWriter
-	for _, opt := range opts {
-		opt.apply(&l)
+	for _, option := range options {
+		option.apply(&l)
 	}
 
 	// default to stdout if not set
@@ -66,6 +66,7 @@ type optionFunc func(*lineWriter)
 
 func (o optionFunc) apply(l *lineWriter) { o(l) }
 
+// Option is the configuration option for a new instance of lineprefix writer.
 type Option interface {
 	apply(*lineWriter)
 }
@@ -180,7 +181,7 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 		}
 	}
 
-	// all bytes are always successfully written
+	// if it gets here, all bytes are successfully written
 	return len(b), nil
 }
 
