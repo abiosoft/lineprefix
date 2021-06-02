@@ -83,7 +83,9 @@ func (p prefixes) Bytes() []byte {
 		fmt.Fprint(&b, prefix())
 	}
 	// add a traling space char
-	fmt.Fprint(&b, " ")
+	if b.Len() > 0 {
+		fmt.Fprint(&b, " ")
+	}
 	return b.Bytes()
 }
 
