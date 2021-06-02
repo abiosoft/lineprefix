@@ -55,7 +55,7 @@ func Color(c *color.Color) Option {
 }
 
 // RenderEscaped (if true) enables the rendering of escaped whitespace characters.
-// e.g. \\t appears as tab instead of \t, \\n appears as newline instead of \n etc.
+// e.g. `\\t` appears as tab instead of `\t`, `\\n` appears as newline instead of `\n` e.t.c.
 func RenderEscaped(b bool) Option {
 	return optionFunc(func(l *lineWriter) {
 		l.renderEscaped = true
@@ -126,7 +126,20 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 		if l.renderEscaped {
 			// special case: replace escaped chars with their real value
 			// newline, tab, quote, backslack
-			if b[i] == '\\' {
+			char := b[i]
+
+			// the last char in the buffer may be the escape char,
+			// let's track back if that is the case,
+			if i == 0 {
+				if byt, err := l.buf.ReadByte(); err == nil && byt == escape {
+					char = byt
+					i--
+				} else if err == nil {
+					l.buf.UnreadByte() // revert the byte (if read)
+				}
+			}
+
+			if char == escape {
 				// peek if available
 				if i+1 < len(b) {
 					i++
@@ -195,3 +208,5 @@ func (l *lineWriter) Close() error {
 	_, err := l.buf.WriteTo(l.out)
 	return err
 }
+
+const escape = '\\'
