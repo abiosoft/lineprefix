@@ -98,7 +98,8 @@ type lineWriter struct {
 
 	renderEscaped bool
 
-	buf bytes.Buffer
+	buf  bytes.Buffer
+	last byte
 	sync.Mutex
 
 	open   bool
@@ -121,6 +122,9 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 		}
 	}
 
+	// skip tracks if the last char is escape char
+	skip := false
+
 	for i := 0; i < len(b); i++ {
 
 		if l.renderEscaped {
@@ -131,38 +135,42 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 			// the last char in the buffer may be the escape char,
 			// let's track back if that is the case,
 			if i == 0 {
-				if byt, err := l.buf.ReadByte(); err == nil && byt == escape {
-					char = byt
+				if l.last == escape {
+					char = escape
 					i--
-				} else if err == nil {
-					l.buf.UnreadByte() // revert the byte (if read)
 				}
+				// reset last char
+				l.last = 0
 			}
 
 			if char == escape {
-				// peek if available
+				// peek if there are more chars
 				if i+1 < len(b) {
 					i++
 					switch b[i] {
 					case 'n':
-						b[i] = '\n'
+						b[i] = newline
 					case 't':
-						b[i] = '\t'
+						b[i] = tab
 
 					// do nothing for these, escape char already skipped
-					case '\\':
-					case '"':
-					case '\'':
+					case escape:
+					case singleQuote:
+					case doubleQuote:
 
 					// otherwise, don't skip escape char
 					default:
 						i--
 					}
+				} else {
+					// skip writing escape as the last char
+					skip = true
+					l.last = escape
 				}
 			}
 		}
 
-		eol := b[i] == '\n' // end of line
+		eol := b[i] == newline // end of line
 
 		if eol && l.color != nil {
 			// reset color at end of line
@@ -170,7 +178,9 @@ func (l *lineWriter) Write(b []byte) (int, error) {
 		}
 
 		// cache the char
-		l.buf.WriteByte(b[i])
+		if !skip {
+			l.buf.WriteByte(b[i])
+		}
 
 		// write to underlying writer if newline is encountered
 		if eol {
@@ -204,9 +214,16 @@ func (l *lineWriter) Close() error {
 	l.Lock()
 	defer l.Unlock()
 
+	// flush what's left in the buffer.
 	l.closed = true
 	_, err := l.buf.WriteTo(l.out)
 	return err
 }
 
-const escape = '\\'
+const (
+	escape      = '\\'
+	newline     = '\n'
+	tab         = '\t'
+	singleQuote = '\''
+	doubleQuote = '"'
+)
