@@ -1,5 +1,7 @@
 # lineprefix
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/abiosoft/lineprefix.svg)](https://pkg.go.dev/github.com/abiosoft/lineprefix)
+
 `io.Writer` wrapper with line prefix and color customizations.
 
 ## Usage
@@ -81,10 +83,6 @@ go run example/main.go
 colored prefix and colored text from the [example](example/main.go).
 
 ![Screenshot](screenshot/screenshot.png)
-
-## Doc
-
-[pkg.go.dev/github.com/abiosoft/lineprefix](https://pkg.go.dev/github.com/abiosoft/lineprefix)
 
 ## License
 
