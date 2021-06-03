@@ -45,7 +45,7 @@ output
 
 ### Color
 
-Coloring is done with [fatih/color](https://github.com/fatih/color).
+Colors can be added with [fatih/color](https://github.com/fatih/color).
 
 #### Colored Prefix
 
